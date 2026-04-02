@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ERD Explorer — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #070910;
+  --surf: #0e1120;
+  --surf2: #141828;
+  --brd: #1a2240;
+  --brd2: #253060;
+  --acc: #4f8ef7;
+  --acc2: #7c3aed;
+  --gold: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --tx: #e2e8f0;
+  --muted: #4a5a7a;
+  --muted2: #64748b;
+  --faint: #111830;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Animated grid background ── */
+.grid-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(79,142,247,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,142,247,.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.glow-orb {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px);
+}
+.glow-orb.a {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
+  top: -120px; left: -100px;
+  animation: drift-a 18s ease-in-out infinite alternate;
+}
+.glow-orb.b {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(124,58,237,.1) 0%, transparent 70%);
+  bottom: -80px; right: -60px;
+  animation: drift-b 22s ease-in-out infinite alternate;
+}
+@keyframes drift-a { to { transform: translate(60px, 40px); } }
+@keyframes drift-b { to { transform: translate(-40px, -60px); } }
+
+/* ── Card ── */
+.card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 520px;
+  background: var(--surf);
+  border: 1px solid var(--brd);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(79,142,247,.05);
+  animation: card-in .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(28px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Card header ── */
+.card-hdr {
+  background: linear-gradient(135deg, #0b1530 0%, #0f1a3a 100%);
+  border-bottom: 1px solid var(--brd);
+  padding: 28px 32px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.card-logo {
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(79,142,247,.35);
+}
+.card-logo svg { width: 24px; height: 24px; }
+.card-hdr-text h1 {
+  font-size: 20px; font-weight: 800; letter-spacing: -.4px;
+  background: linear-gradient(135deg, #e2e8f0, #90b4f7);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.card-hdr-text p { font-size: 12px; color: var(--muted2); margin-top: 3px; }
+
+/* ── Form body ── */
+.card-body { padding: 28px 32px 32px; }
+
+.field-group { margin-bottom: 20px; }
+.field-group label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted2); margin-bottom: 7px;
+}
+.field-row { display: flex; gap: 12px; }
+.field-row .field-group { flex: 1; margin-bottom: 0; }
+
+input[type=text], input[type=password], input[type=number] {
+  width: 100%;
+  background: var(--faint);
+  border: 1px solid var(--brd);
+  color: var(--tx);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  appearance: textfield;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+input:focus {
+  border-color: var(--acc);
+  background: #0f1d3a;
+  box-shadow: 0 0 0 3px rgba(79,142,247,.12);
+}
+input::placeholder { color: var(--muted); }
+input.error { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
+
+.divider {
+  height: 1px; background: var(--brd); margin: 22px 0;
+  position: relative;
+}
+.divider span {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: var(--surf); padding: 0 10px;
+  font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase;
+}
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, #3a7ef0, #6d28d9);
+  border: none; border-radius: 12px;
+  color: #fff; font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 6px 20px rgba(79,142,247,.3);
+  letter-spacing: .02em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-submit:hover:not(:disabled) {
+  opacity: .92; transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(79,142,247,.4);
+}
+.btn-submit:active:not(:disabled) { transform: translateY(0); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* ── Progress panel ── */
+#progress-panel {
+  display: none;
+  padding: 0 32px 32px;
+  animation: fade-in .3s ease both;
+}
+#progress-panel.visible { display: block; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.prog-title {
+  font-size: 13px; font-weight: 600; color: var(--muted2);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.spinner {
+  width: 14px; height: 14px; border: 2px solid var(--brd2);
+  border-top-color: var(--acc); border-radius: 50%;
+  animation: spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner.done { border-color: var(--green); border-top-color: var(--green); animation: none; }
+.spinner.error { border-color: var(--red); border-top-color: var(--red); animation: none; }
+
+/* Progress bar track */
+.prog-track {
+  height: 6px; background: var(--brd); border-radius: 99px; overflow: hidden; margin-bottom: 16px;
+}
+.prog-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, #4f8ef7, #7c3aed);
+  width: 0%; transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+.prog-fill.done { background: var(--green); }
+.prog-fill.error { background: var(--red); }
+
+/* Log list */
+.prog-log {
+  max-height: 200px; overflow-y: auto;
+  background: var(--faint); border: 1px solid var(--brd);
+  border-radius: 10px; padding: 10px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  line-height: 1.7; color: var(--muted2);
+}
+.prog-log::-webkit-scrollbar { width: 4px; }
+.prog-log::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 2px; }
+
+.log-line { display: flex; align-items: flex-start; gap: 8px; padding: 2px 0; }
+.log-line:last-child { color: var(--tx); }
+.log-icon { flex-shrink: 0; width: 14px; text-align: center; margin-top: 1px; }
+.log-pct { color: var(--muted); min-width: 32px; font-size: 10px; }
+.log-msg { flex: 1; }
+.log-line.ok .log-icon { color: var(--green); }
+.log-line.run .log-icon { color: var(--acc); }
+.log-line.err .log-icon { color: var(--red); }
+
+/* ── Error banner ── */
+#err-banner {
+  display: none; margin: 0 32px 20px;
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 12.5px; color: #fca5a5; line-height: 1.5;
+}
+#err-banner.visible { display: block; }
+
+/* ── Success actions ── */
+#success-panel {
+  display: none; padding: 0 32px 28px;
+  animation: fade-in .35s ease both;
+}
+#success-panel.visible { display: block; }
+
+.success-banner {
+  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.success-icon {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.3);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green); font-size: 15px;
+}
+.success-text strong { display: block; font-size: 13px; color: #6ee7b7; margin-bottom: 2px; }
+.success-text span   { font-size: 11px; color: var(--muted2); }
+
+.action-btns { display: flex; gap: 10px; }
+.btn-open {
+  flex: 1; padding: 11px 16px;
+  background: linear-gradient(135deg, #3a7ef0, #6d28d9);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: opacity .18s, transform .15s, box-shadow .18s;
+  box-shadow: 0 4px 16px rgba(79,142,247,.35);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn-open:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 22px rgba(79,142,247,.45); }
+.btn-open:active { transform: none; }
+
+.btn-dl {
+  padding: 11px 14px;
+  background: var(--faint); border: 1px solid var(--brd2);
+  border-radius: 10px; color: var(--muted2);
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.btn-dl:hover { border-color: var(--acc); color: var(--tx); background: #111830; }
+
+.btn-new {
+  width: 100%; margin-top: 10px; padding: 9px;
+  background: transparent; border: 1px solid var(--brd);
+  border-radius: 10px; color: var(--muted2);
+  font-family: 'Syne', sans-serif; font-size: 12px; cursor: pointer;
+  transition: border-color .15s, color .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-new:hover { border-color: var(--brd2); color: var(--tx); }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb a"></div>
+<div class="glow-orb b"></div>
+
+<div class="card">
+
+  <div class="card-hdr">
+    <div class="card-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+        <path d="M3 5v14a9 3 0 0018 0V5"/>
+        <path d="M3 12a9 3 0 0018 0"/>
+      </svg>
+    </div>
+    <div class="card-hdr-text">
+      <h1>ERD Explorer</h1>
+      <p>Connexion PostgreSQL &rarr; Diagramme interactif</p>
+    </div>
+  </div>
+
+  <div class="card-body" id="form-body">
+
+    <div id="err-banner"></div>
+
+    <!-- Host + Port -->
+    <div class="field-row">
+      <div class="field-group" style="flex:3">
+        <label>Hôte</label>
+        <input type="text" id="f-host" value="localhost" placeholder="localhost"/>
+      </div>
+      <div class="field-group" style="flex:1">
+        <label>Port</label>
+        <input type="number" id="f-port" value="5432" placeholder="5432" min="1" max="65535"/>
+      </div>
+    </div>
+
+    <!-- Database + Schema -->
+    <div class="field-row" style="margin-top:16px">
+      <div class="field-group" style="flex:2">
+        <label>Base de données</label>
+        <input type="text" id="f-dbname" placeholder="ma_base"/>
+      </div>
+      <div class="field-group" style="flex:1">
+        <label>Schéma</label>
+        <input type="text" id="f-schema" value="public" placeholder="public"/>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:22px"><span>Authentification</span></div>
+
+    <!-- User + Password -->
+    <div class="field-row">
+      <div class="field-group">
+        <label>Utilisateur</label>
+        <input type="text" id="f-user" placeholder="postgres" autocomplete="username"/>
+      </div>
+      <div class="field-group">
+        <label>Mot de passe</label>
+        <input type="password" id="f-pass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+    </div>
+
+    <div style="margin-top:26px">
+      <button class="btn-submit" id="btn-connect" onclick="startGeneration()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        Générer le diagramme ERD
+      </button>
+    </div>
+
+  </div><!-- /card-body -->
+
+  <!-- Progress panel (shown during generation) -->
+  <div id="progress-panel">
+    <div class="prog-title">
+      <div class="spinner" id="spin"></div>
+      <span id="prog-label">Connexion en cours...</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog-fill"></div>
+    </div>
+    <div class="prog-log" id="prog-log"></div>
+  </div>
+
+  <!-- Success panel (shown when ERD is ready) -->
+  <div id="success-panel">
+    <div class="success-banner">
+      <div class="success-icon">✓</div>
+      <div class="success-text">
+        <strong>Diagramme ERD prêt</strong>
+        <span id="success-sub">—</span>
+      </div>
+    </div>
+    <div class="action-btns">
+      <button class="btn-open" id="btn-open-erd">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Ouvrir le diagramme
+      </button>
+      <button class="btn-dl" id="btn-dl-erd">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Télécharger
+      </button>
+    </div>
+    <button class="btn-new" onclick="resetForm()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+      </svg>
+      Nouvelle connexion
+    </button>
+  </div>
+
+</div><!-- /card -->
+
+<script>
+function startGeneration() {
+  const host   = document.getElementById('f-host').value.trim();
+  const port   = document.getElementById('f-port').value.trim();
+  const dbname = document.getElementById('f-dbname').value.trim();
+  const schema = document.getElementById('f-schema').value.trim() || 'public';
+  const user   = document.getElementById('f-user').value.trim();
+  const pass   = document.getElementById('f-pass').value;
+
+  // Validation rapide
+  const errBanner = document.getElementById('err-banner');
+  errBanner.classList.remove('visible');
+  let errors = [];
+  if (!host)   errors.push('Hôte requis');
+  if (!dbname) errors.push('Nom de base requis');
+  if (!user)   errors.push('Utilisateur requis');
+  if (errors.length) {
+    errBanner.innerHTML = '⚠ ' + errors.join(' &nbsp;·&nbsp; ');
+    errBanner.classList.add('visible');
+    return;
+  }
+
+  // UI → mode progression
+  document.getElementById('btn-connect').disabled = true;
+  document.getElementById('progress-panel').classList.add('visible');
+  document.getElementById('prog-log').innerHTML = '';
+
+  const fill    = document.getElementById('prog-fill');
+  const spin    = document.getElementById('spin');
+  const label   = document.getElementById('prog-label');
+  const log     = document.getElementById('prog-log');
+
+  function addLog(pct, msg, status) {
+    const icon = status === 'done' ? '✓' : status === 'error' ? '✕' : '›';
+    const cls  = status === 'done' ? 'ok' : status === 'error' ? 'err' : 'run';
+    const line = document.createElement('div');
+    line.className = `log-line ${cls}`;
+    line.innerHTML = `<span class="log-icon">${icon}</span><span class="log-pct">${pct}%</span><span class="log-msg">${msg}</span>`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  fetch('/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ host, port, dbname, user, password: pass, schema })
+  }).then(resp => {
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    function read() {
+      reader.read().then(({ done, value }) => {
+        if (done) return;
+        buf += decoder.decode(value, { stream: true });
+        const parts = buf.split('\n\n');
+        buf = parts.pop();
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith('data:')) continue;
+          try {
+            const ev = JSON.parse(line.slice(5).trim());
+            const pct = ev.pct;
+            const msg = ev.msg;
+            const st  = ev.status;
+
+            // Update bar + label
+            fill.style.width = pct + '%';
+            label.textContent = msg;
+            addLog(pct, msg, st === 'running' ? 'run' : st);
+
+            if (st === 'done') {
+              fill.classList.add('done');
+              spin.classList.add('done');
+              label.textContent = 'Diagramme prêt !';
+
+              if (ev.html_b64) {
+                // Store the blob URL and wire up the buttons
+                const html   = atob(ev.html_b64);
+                const blob   = new Blob([html], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const dbname = document.getElementById('f-dbname').value.trim();
+                const schema = document.getElementById('f-schema').value.trim() || 'public';
+                const tblCount = Object.keys(JSON.parse(atob(ev.html_b64).match(/const TABLES = (\{.*?\});/s)?.[1] || '{}')).length;
+
+                document.getElementById('success-sub').textContent =
+                  `${dbname} / ${schema}`;
+
+                const btnOpen = document.getElementById('btn-open-erd');
+                const btnDl   = document.getElementById('btn-dl-erd');
+
+                // Open in new tab — triggered by real user click, no popup blocker
+                btnOpen.onclick = () => window.open(blobUrl, '_blank');
+
+                // Download as file
+                btnDl.onclick = () => {
+                  const a = document.createElement('a');
+                  a.href = blobUrl;
+                  a.download = `erd_${dbname}_${schema}.html`;
+                  a.click();
+                };
+
+                // Show success panel, hide progress panel
+                document.getElementById('progress-panel').classList.remove('visible');
+                document.getElementById('success-panel').classList.add('visible');
+              }
+              return;
+            }
+
+            if (st === 'error') {
+              fill.classList.add('error');
+              spin.classList.add('error');
+              label.textContent = 'Erreur — vérifiez les paramètres';
+              document.getElementById('btn-connect').disabled = false;
+              return;
+            }
+
+          } catch(e) { /* ignore parse error */ }
+        }
+        read();
+      });
+    }
+    read();
+  }).catch(err => {
+    addLog(0, 'Erreur réseau : ' + err, 'error');
+    spin.classList.add('error');
+    document.getElementById('btn-connect').disabled = false;
+  });
+}
+
+// Entrée = soumettre
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('btn-connect').disabled) startGeneration();
+});
+
+function resetForm() {
+  document.getElementById('success-panel').classList.remove('visible');
+  document.getElementById('progress-panel').classList.remove('visible');
+  document.getElementById('btn-connect').disabled = false;
+  const fill = document.getElementById('prog-fill');
+  fill.classList.remove('done','error'); fill.style.width = '0%';
+  document.getElementById('spin').classList.remove('done','error');
+  document.getElementById('prog-log').innerHTML = '';
+  document.getElementById('prog-label').textContent = 'Connexion en cours...';
+}
+</script>
+</body>
+</html>

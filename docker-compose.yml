@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: pg-erd-web
+    ports:
+      - "5055:5050"
+    # Permet au conteneur d'accéder à "host.docker.internal" (pour pointer sur votre machine Windows/hôte)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    
+  # (Optionnel) Si vous souhaitez également qu'il y ait une base de données de test
+  # postgres_db:
+  #   image: postgres:15
+  #   container_name: postgres_test
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: ma_base
+  #   ports:
+  #     - "5432:5432"
